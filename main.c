@@ -3,19 +3,12 @@
 #include <stdio.h>
 #include <time.h>
 
-/*
-#define EN 400
-#sdefine BOY 400
-#define BASLIK "test"
-*/
-
 // nokta verileri bu structa tutulur
 typedef struct Nokta
 {
     float x;
     float y;
-} point;
-
+} nokta;
 
 typedef struct Daire
 {
@@ -58,23 +51,25 @@ int isall_inside(int n, nokta *liste, daire c)
 // daire ciz
 void draw_circle(daire c, nokta merkez)
 {
-    setcolor(15);
+    setcolor(0);
     circle((merkez.x + c.merkez.x), (merkez.y - c.merkez.y), c.r);
 }
 
-void draw_point(nokta p, nokta merkez)
+void draw_point(nokta p, nokta merkez, int color)
 {
     float x = merkez.x + p.x, y = merkez.y - p.y;
-    setcolor(15);
+    setcolor(0);
 
+    // draw text below point
     char kord[20];
-    sprintf(kord, "(%0.f,%0.f)", x, y);
+    sprintf(kord, "(%0.f,%0.f)", p.x, p.y);
     settextstyle(SMALL_FONT, 0, 5);
     outtextxy(x + 10, y + 10, kord);
 
-    setcolor(4);
-    setfillstyle(rand() % 12, 4);
-    fillellipse(x, y, 10, 10);
+    // draw the point
+    setcolor(color);
+    setfillstyle(rand() % 12, color);
+    fillellipse(x, y, 7, 7);
 }
 
 void hesapla(int n, nokta *liste, nokta merkez)
@@ -124,8 +119,81 @@ void hesapla(int n, nokta *liste, nokta merkez)
         }
     }
 
-    printf("Daire kordinatları: %f, %f\n", big_circle.merkez.x, big_circle.merkez.y);
+    printf("Daire merkez: %f, %f\n", big_circle.merkez.x, big_circle.merkez.y);
+    printf("Daire yarıçap: %f", big_circle.r);
+
+    draw_point(big_circle.merkez, merkez, 10);
+
     draw_circle(big_circle, merkez);
+}
+
+void kordinat_ciz(int en, int boy)
+{
+    // change background color
+    setbkcolor(15);
+    cleardevice();
+    setcolor(0);
+    setlinestyle(0, 0, 2);
+
+    // draw the coordinate system
+
+    // bu kısmın amacı çizgilerin pencere kenarından biraz daha içerde olmasını sağlamak
+    // bunlar en ve boy kullanılarak dinamik bir şekilde hesaplanıyor
+
+    int yx = en / 20;   // yatay nokta baslangıc örn: 100/20 = 5 5pixel içeri
+    int ysx = en - yx;  // yatay nokta bitiş
+    int dy = boy / 20;  // dikey nokta başlangıç
+    int dsy = boy - dy; // dikey nokta bitiş
+
+    line(en / 2, dy, en / 2, dsy);
+    line(yx, boy / 2, ysx, boy / 2);
+
+    //ust ok
+    line(en / 2, dy, en / 2 + 10, dy + 10);
+    line(en / 2, dy, en / 2 - 10, dy + 10);
+
+    // alt ok
+    line(en / 2, dsy, en / 2 + 10, dsy - 10);
+    line(en / 2, dsy, en / 2 - 10, dsy - 10);
+
+    // sol ok
+    line(yx, boy / 2, yx + 10, boy / 2 - 10);
+    line(yx, boy / 2, yx + 10, boy / 2 + 10);
+
+    // sag ok
+    line(ysx, boy / 2, ysx - 10, boy / 2 - 10);
+    line(ysx, boy / 2, ysx - 10, boy / 2 + 10);
+
+    // ysx-yx = en uzunluk
+    setcolor(0);
+    settextstyle(SMALL_FONT, 0, 5);
+    //Yatay Çizgiler.
+    for (int i = yx + 5; i < ysx; i += 5)
+    {
+        if ((i - yx) % 20 == 0){
+            setlinestyle(0, 0, 2);
+            line(i, (boy/2) - 5, i, (boy/2) + 5);
+        }
+        else{
+            setlinestyle(0, 0, 1);
+            line(i, (boy/2) - 2, i, (boy/2) + 2);
+        }
+    }
+    
+    //Dikey Çizgiler
+        for (int i = dy + 5; i < dsy; i += 5)
+    {
+
+        if ((i - dy) % 20 == 0){
+            setlinestyle(0, 0, 2);
+            line((en/2) - 5, i, (en/2) + 5, i);
+        }
+        else{
+            setlinestyle(0, 0, 1);
+            line((en/2) - 2, i, (en/2) + 2, i);
+        }
+    }
+    setlinestyle(0, 0, 2);
 }
 
 int main()
@@ -133,37 +201,34 @@ int main()
     srand(time(NULL));
     // pencere ayarlanır
     const char *title = "test";
-    float en = 1000, boy = 1000;
-    nokta merkez = {en / 2, boy / 2};
+    int en = 1200, boy = 1000;
+    en = en - en%20;
+    boy = boy - boy%20;
+    nokta merkez = {(float)en / 2, (float)boy / 2};
 
     initwindow(en, boy, title); // grafik pencere açıyoruz
 
-    line(en / 2, 0, en / 2, en);   // (200,0)(200,400)
-    line(0, boy / 2, en, boy / 2); // (0,200)(400,200)
+    kordinat_ciz(en, boy);
+
+    // generate points
 
     int n = 5 + (rand() % 15);
     nokta liste[n];
     for (int i = 0; i < n; i++)
     {
-        liste[i].x = -400 + (rand() % 800);
-        liste[i].y = -400 + (rand() % 800);
+        liste[i].x = -300 + (rand() % 600);
+        liste[i].y = -300 + (rand() % 600);
     }
-
-    /*
-    nokta ornek1 = {45, 10};
-    nokta ornek2 = {-66, 55};
-    nokta ornek3 = {100, -30};
-    nokta liste[3] = {ornek1, ornek2, ornek3};
-    int n = sizeof(liste) / sizeof(nokta);
-    */
 
     printf("Liste boyutu:%d\n", n);
     hesapla(n, liste, merkez);
-    // noktaları çiziyoruz
-    for (int i = 0; i < n; i++)
-        draw_point(liste[i], merkez);
 
-    while (!kbhit()); //wait for user to press a key
+    // drawing points
+    for (int i = 0; i < n; i++)
+        draw_point(liste[i], merkez, 4);
+
+    while (!kbhit())
+        ; //wait for user to press a key
 
     return 0;
 }
